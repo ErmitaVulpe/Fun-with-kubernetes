@@ -1,0 +1,13 @@
+version: "2"
+services:
+  node:
+    image: connection-logger
+    environment:
+      - SQL_HOST=10.58.144.3
+      - SQL_USER=user
+      - SQL_PASSWORD=M9I}[6@;eP~~/K(J
+      - SQL_DATABASE=connection-logs
+    ports:
+      - "80:3000"
+      - "3306:3306"
+    command: "npm start"
