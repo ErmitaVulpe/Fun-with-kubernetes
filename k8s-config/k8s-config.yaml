@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: connection-tracker-deployment
+  labels:
+    app: connection-tracker
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: connection-tracker
+  template:
+    metadata:
+      labels:
+        app: connection-tracker
+    spec:
+      containers:
+      - name: connection-tracker
+        image: master.k8s:5000/connection-tracker:latest
+        ports:
+        - containerPort: 3000
+        - containerPort: 3306
+        env:
+        - name: SQL_HOST
+          valueFrom:
+            secretKeyRef:
+              name: sql-secret
+              key:SQL_SECRET_
+        - name: SQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: sql-secret
+              key:SQL_SECRET_
+        - name: SQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: sql-secret
+              key:SQL_SECRET_
+        - name: SQL_DATABASE
+          valueFrom:
+            secretKeyRef:
+              name: sql-secret
+              key:SQL_SECRET_
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: cluster-ingress
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: connection-tracker-service
+            port:
+              number: 80
+---
