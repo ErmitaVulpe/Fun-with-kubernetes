@@ -45,12 +45,12 @@ kube-apiserver:
 
 machines-config:
 - master:
-  - ip: 10.0.2.1/16
+  - ip: 10.0.3.1/16
   - dns-name: master.k8s
 - slave-1:
-  - ip: 10.0.2.1/16
+  - ip: 10.0.3.10/16
 - slave-2:
-  - ip: 10.0.2.1/16
+  - ip: 10.0.3.11/16
 
 all-nodes:
 - sudo su
@@ -67,7 +67,9 @@ all-nodes:
 
 master-node:
 - kubeadm init --pod-network-cidr 10.10.0.0/16
-- export KUBECONFIG=/etc/kubernetes/admin.conf
+- mkdir -p $HOME/.kube
+- sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+- sudo chown $(id -u):$(id -g) $HOME/.kube/config
 - {apply calico networking config from https://docs.tigera.io/calico/latest/getting-started/kubernetes/self-managed-onprem/onpremises. in my case:}
 - kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.25.1/manifests/calico-typha.yaml
 - echo '{ "insecure-registries":["master.k8s:5000"] }' | sudo tee /etc/docker/daemon.json >/dev/null
