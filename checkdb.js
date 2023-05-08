@@ -1,10 +1,10 @@
 const mysql = require('mysql');
 
 const connection = mysql.createConnection({
-    host: '10.58.144.3',
-    user: 'user',
-    password: 'M9I}[6@;eP~~/K(J',
-    database: 'connection-logs'
+    host: '',
+    user: '',
+    password: '',
+    database: ''
 });
 
 connection.query('SELECT * FROM logs', function (error, results, fields) {

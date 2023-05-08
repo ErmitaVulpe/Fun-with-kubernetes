@@ -1,9 +1,5 @@
 FROM node
 
-ADD docker.crt /usr/local/share/ca-certificates/docker.crt
-RUN chmod 644 /usr/local/share/ca-certificates/docker.crt
-RUN update-ca-certificates
-
 WORKDIR /app/
 ADD ./src/* ./
 EXPOSE 3000
