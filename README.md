@@ -1,70 +1,87 @@
-# Fun with kubernetes
+# Welcome!
 
-This was a little project of mine. My goal was to set up a simple kubernetes cluster in GCP using kubeadm, and deploy a simple nodejs app on it that on http get would return current time and the name of the pod that it was connected to, and send that data to an external database.
+Welcome to my project! This is a brief overview of what you will find in this repository.
 
-### What i've learned:
-- A lot about cloud computing
-- Managing VMs
-- Managing virtual networks including:
-    - Subnetworks
-    - internal DNS
-    - Load balancing
-- Quite a bit about how linux works under the cover
-- Kubernetes itself!
+## Table of Contents
 
-# Steps for recreating the setup
-## 1. Network
+- [Introduction](#introduction)
+- [Setup](#setup)
+  - [Network](#network)
+    - [Virtual Network](#virtual-network)
+    - [Firewall](#firewall)
+    - [Addresses](#addresses)
+  - [Machines](#machines)
+    - [Database](#database)
+    - [Machines Data](#machines-data)
+    - [Running Machines](#running-machines)
+- [Conclusion](#and-thats-it)
 
-First I've created a new virtual network for the cluster.
+## Introduction
 
-- Name: k8s-network
-- Subnet: main
-    - region: europe-north1 (currently the cheapest)
-    - IPv4 range: 10.0.0.0/16
+This was a little project of mine. My goal was to set up a simple Kubernetes cluster in GCP using kubeadm, and deploy a simple Node.js app on it that on HTTP get would return the current time and the name of the pod that it was connected to, and send that data to an external database.
 
-### Firewall:
+## Setup
 
-| Rule name | Type | Targets | Filters | Protocols / Ports | Action | Priority |
-|---|---|---|---|---|---|---|
-| k8s-network-allow-all-local | Ingress | Apply to all | 10.0.0.0/16 | all | Allow | 65534 |
-| k8s-network-allow-ssh | Ingress | Apply to all | 0.0.0.0/0 | tcp:22 | Allow | 65534 |
-| k8s-network-allow-app | Ingress | Apply to all | 0.0.0.0/0 | tcp:30000 | Allow | 65534 |
+Here is how to recreate my setup:
 
-### Addresses:
-- Master: 10.0.0.1 (Don't forget to add a DNS record for master.k8s)
-- Slaves: 10.0.0.n+10
+### Network
 
-&nbsp;
-### Now is also a good moment to create a SQL database
-Generally it doesn't require a lot of setup. Just remember to create a user and save the password.
+Here is my network setup. Please note that this setup can depend on what kind of machines you are using and what's your network configuration. 
 
-&nbsp;
-## 2. Machines
+#### Virtual Network
 
-The setup i was going for by no means demanding so i went with the minimum  
+First, let's create a Virtual Network for the cluster.
+- Name: `k8s-network`
+- Subnet: `main`
+  - Region: `europe-north1`
+  - IPv4 range: `10.0.0.0/16`
+
+#### Firewall
+
+Here is a simple Firewall config table:
+
+| Rule name                     | Type     | Targets      | Filters     | Protocols / Ports | Action | Priority |
+| ---------------------------- | -------- | ------------ | ----------- | ----------------- | ------ | -------- |
+| k8s-network-allow-all-local  | Ingress  | Apply to all | 10.0.0.0/16 | all               | Allow  | 65534    |
+| k8s-network-allow-ssh        | Ingress  | Apply to all | 0.0.0.0/0   | TCP:22            | Allow  | 65534    |
+| k8s-network-allow-app        | Ingress  | Apply to all | 0.0.0.0/0   | TCP:30000         | Allow  | 65534    |
+
+#### Addresses
+
+- Master: `10.0.0.1`
+- Slaves: `10.0.0.n+10`
+
+Note: (Don't forget to add a DNS record for `master.k8s`)
+
+### Machines
+
+The setup I was going for by no means demanding, so I went with the minimum.  
 All machines had a 20 GB drive with Ubuntu 20.04 installed.
 
-### Master:
-- 2 vCPUs
-- 4 GB ram
+#### Database
 
-### Slaves:
-- 2 vCPUs
-- 2 GB ram
+Database structure can be basic. It doesn't request a lot of setup. Remember to create a user and save the password.
 
-&nbsp;
-### Create a fron end load balancer.
-Now that the machines are created we can create a load balancer for the aplication.  
-This balancer will act as a internet gateway.  
-So, create a HTTP balancer with a port 80 front end, and port 30000 back end.  
-For a health check create an empty tcp:30000 handshake check.
+#### Machines Data
 
-&nbsp;
-## 3. Preparing the machines
+ Master:
+  - 2 vCPUs
+  - 4 GB ram
+ Slaves:
+  - 2 vCPUs
+  - 2 GB ram
 
-### **Run on all machines:**
+Now that the machines are created we can create a load balancer for the application.  
+This balancer will act as an internet gateway.  
+So, create an HTTP balancer with a port 80 frontend, and port 30000 backend.  
+For a health check create an empty TCP:30000 handshake check.
+
+#### Running Machines
+
+**Run on all machines:**
 
 ### Installing dependencies:
+
 ```shell
 sudo su -
 apt update
@@ -73,6 +90,7 @@ apt install -y docker.io apt-transport-https ca-certificates curl
 ```
 
 ### Downloading and installing kubernetes components:
+
 ```shell
 curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add
 mkdir -p /etc/apt/keyrings/
@@ -118,7 +136,7 @@ kubeadm join 10.0.0.1:6443 --token h23k40.kedzrhwkovbodxxc \
 ### And that's it! the cluster has been created
 
 &nbsp;
-## 4. Configure the application
+####  Configure the application
 
 First you'll need to build a docker image of the aplication.  
 To do so copy the [container folder](https://github.com/ErmitaVulpe/Fun-with-kubernetes/tree/master/container), go inside of it and run:
